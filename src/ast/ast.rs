@@ -17,27 +17,6 @@ pub trait Expression: Node + Debug {
 }
 
 #[derive(Debug)]
-pub struct ExpressionValue {
-    pub token: Token,
-}
-
-impl Node for ExpressionValue {
-    fn token_literal(&self) -> String {
-        self.token.to_string()
-    }
-
-    fn string(&self) -> String {
-        self.token.to_string()
-    }
-}
-impl Expression for ExpressionValue {
-    fn expression_node(&self) {}
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-#[derive(Debug)]
 pub struct Program {
     pub statements: Vec<Box<dyn Statement>>,
 }
@@ -141,7 +120,7 @@ impl Node for ExpressionStatement {
     }
 
     fn string(&self) -> String {
-        if let Some(ref expression) = self.as_any().downcast_ref::<ExpressionValue>() {
+        if let Some(ref expression) = self.as_any().downcast_ref::<ExpressionStatement>() {
             expression.string()
         } else {
             String::new()

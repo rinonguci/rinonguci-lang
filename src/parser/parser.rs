@@ -2,8 +2,8 @@ use crate::ast::ast::InfixExpression;
 #[allow(unused_imports)]
 use crate::{
     ast::ast::{
-        Expression, ExpressionStatement, ExpressionValue, Identifier, IntegerLiteral, LetStatement,
-        Node, PrefixExpression, Program, ReturnStatement, Statement,
+        Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, Node,
+        PrefixExpression, Program, ReturnStatement, Statement,
     },
     lexer::lexer::Lexer,
     token::token::{Precedence, Token},
@@ -266,9 +266,7 @@ impl Parser {
             None => {
                 let msg = format!("no prefix parse function for {:?}", self.cur_token);
                 self.errors.push(msg);
-                Box::new(ExpressionValue {
-                    token: self.cur_token.clone(),
-                })
+                Box::new(Identifier { token: Token::EOF })
             }
         }
     }
@@ -349,7 +347,7 @@ fn test_string() {
         statements: vec![Box::new(LetStatement {
             token: Token::LET,
             name: Some("myVar".to_string()),
-            value: Some(Box::new(ExpressionValue {
+            value: Some(Box::new(Identifier {
                 token: Token::IDENT("anotherVar".to_string()),
             })),
         })],
