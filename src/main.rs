@@ -1,5 +1,5 @@
-use crate::{ast::ast::Node, parser::parser::Parser};
-use lexer::lexer::Lexer;
+use crate::{ast::Node, parser::Parser};
+use lexer::Lexer;
 
 pub mod ast;
 pub mod lexer;
@@ -19,7 +19,7 @@ fn main() {
     let mut p = Parser::new(l);
     let program = p.parse_program();
     println!("len: {:#?}", program.string());
-    // for statement in program.statements {
-    //     println!("{:?}", statement.token_literal());
-    // }
+    for statement in program.statements {
+        println!("{:?}", statement.token_literal());
+    }
 }
