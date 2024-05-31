@@ -1,16 +1,14 @@
 pub mod test;
 
-use crate::ast::expression::node::{Identifier, InfixExpression, IntegerLiteral, PrefixExpression};
+use tracing::auto_log;
+use crate::ast::expression::node::{ Identifier, InfixExpression, IntegerLiteral, PrefixExpression };
 use crate::ast::expression::ExpressionType;
-use crate::ast::statement::node::{ExpressionStatement, LetStatement, ReturnStatement};
+use crate::ast::statement::node::{ ExpressionStatement, LetStatement, ReturnStatement };
 use crate::ast::statement::StatementType;
 use crate::ast::Program;
-use crate::{
-    lexer::Lexer,
-    token::{Precedence, Token},
-};
+use crate::{ lexer::Lexer, token::{ Precedence, Token } };
 use core::option::Option;
-use std::{collections::HashMap, mem::Discriminant};
+use std::{ collections::HashMap, mem::Discriminant };
 
 type PrefixParseFn = fn(&mut Parser) -> Box<ExpressionType>;
 type InfixParseFn = fn(&mut Parser, Box<ExpressionType>) -> Box<ExpressionType>;
@@ -57,12 +55,16 @@ impl Parser {
         parser
     }
 
+    #[auto_log]
     pub fn parse_identifier(&mut self) -> Box<ExpressionType> {
-        Box::new(ExpressionType::Identifier(Identifier {
-            token: self.cur_token.clone(),
-        }))
+        Box::new(
+            ExpressionType::Identifier(Identifier {
+                token: self.cur_token.clone(),
+            })
+        )
     }
 
+    #[auto_log]
     fn parse_integer_literal(&mut self) -> Box<ExpressionType> {
         let token = self.cur_token.clone();
         Box::new(ExpressionType::IntegerLiteral(IntegerLiteral { token }))
@@ -73,15 +75,18 @@ impl Parser {
         self.errors.push(msg);
     }
 
+    #[auto_log]
     pub fn parse_prefix_expression(&mut self) -> Box<ExpressionType> {
         let token = self.cur_token.clone();
         self.next_token();
         let right = self.parse_expression(Precedence::PREFIX);
 
-        Box::new(ExpressionType::Prefix(PrefixExpression {
-            operator: token,
-            right: Some(right),
-        }))
+        Box::new(
+            ExpressionType::Prefix(PrefixExpression {
+                operator: token,
+                right: Some(right),
+            })
+        )
     }
 
     pub fn peek_precedence(&self) -> Precedence {
@@ -92,27 +97,27 @@ impl Parser {
         self.cur_token.to_precedence()
     }
 
+    #[auto_log]
     pub fn parse_infix_expression(&mut self, left: Box<ExpressionType>) -> Box<ExpressionType> {
         let token = self.cur_token.clone();
         let precedence = self.cur_precedence();
         self.next_token();
-        let right = self.parse_expression(precedence);
 
-        Box::new(ExpressionType::Infix(InfixExpression {
-            operator: token,
-            left: Some(left),
-            right: Some(right),
-        }))
+        Box::new(
+            ExpressionType::Infix(InfixExpression {
+                operator: token,
+                left: Some(left),
+                right: Some(self.parse_expression(precedence)),
+            })
+        )
     }
 
     pub fn register_prefix(&mut self, token_type: Token, function: PrefixParseFn) {
-        self.prefix_parse_fns
-            .insert(token_type.to_original_type(), function);
+        self.prefix_parse_fns.insert(token_type.to_original_type(), function);
     }
 
     pub fn register_infix(&mut self, token_type: Token, function: InfixParseFn) {
-        self.infix_parse_fns
-            .insert(token_type.to_original_type(), function);
+        self.infix_parse_fns.insert(token_type.to_original_type(), function);
     }
 
     pub fn errors(&self) -> Vec<String> {
@@ -122,7 +127,8 @@ impl Parser {
     fn peek_error(&mut self, expected: Token) {
         let msg = format!(
             "expected next token to be {:?}, got {:?} instead",
-            expected, self.peek_token
+            expected,
+            self.peek_token
         );
         self.errors.push(msg);
     }
@@ -210,11 +216,13 @@ impl Parser {
             Token::RETURN => {
                 return self.parse_return_statement();
             }
-            _ => return self.parse_expression_statement(),
-            // _ => return None,
+            _ => {
+                return self.parse_expression_statement();
+            } // _ => return None,
         }
     }
 
+    #[auto_log]
     pub fn parse_program(&mut self) -> Program {
         let mut program = Program {
             statements: Vec::new(),
@@ -233,19 +241,16 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, _precedence: Precedence) -> Box<ExpressionType> {
-        let prefix = self
-            .prefix_parse_fns
-            .get(&self.cur_token.to_original_type())
-            .cloned();
+        let prefix = self.prefix_parse_fns.get(&self.cur_token.to_original_type()).cloned();
 
         match prefix {
             Some(prefix_fn) => {
                 let mut left_exp = prefix_fn(self);
-                while !self.peek_token_is(Token::SEMICOLON)
-                    && self.cur_precedence() < self.peek_precedence()
+                while
+                    !self.peek_token_is(Token::SEMICOLON) &&
+                    self.cur_precedence() < self.peek_precedence()
                 {
-                    let infix = self
-                        .infix_parse_fns
+                    let infix = self.infix_parse_fns
                         .get(&self.peek_token.to_original_type())
                         .cloned();
 
