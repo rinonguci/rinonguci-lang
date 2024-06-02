@@ -17,18 +17,24 @@ pub fn auto_log(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let fn_output = &input_fn.sig.output;
     let fn_block = &input_fn.block;
 
+    let enabled = std::env::var("auto_log_enabled").unwrap_or("false".to_string());
+
     let expanded =
         quote! {
             #fn_vis #fn_async #fn_const #fn_unsafe #fn_abi #fn_generics fn #fn_name(#fn_inputs) #fn_output {
                 let indent = std::env::var("auto_log_indent").unwrap_or("0".to_string()).as_str().parse::<usize>().unwrap();
-                let start = std::time::Instant::now();
-                println!("{}BEGIN: {}", String::from(" ").repeat(indent), stringify!(#fn_name));
-                let new_indent =(indent + 4).to_string();
-                std::env::set_var("auto_log_indent", new_indent);
+                if #enabled == "true" {
+                    println!("{}BEGIN: {}", String::from(" ").repeat(indent), stringify!(#fn_name));
+                    let new_indent =(indent + 2).to_string();
+                    std::env::set_var("auto_log_indent", new_indent);
+                }
                 let result = #fn_block;
-                println!("{}END: {} (took {} ms)", String::from(" ").repeat(indent), stringify!(#fn_name), start.elapsed().as_millis());
-                let new_indent = indent.to_string();
-                std::env::set_var("auto_log_indent", new_indent);
+                if #enabled == "true" {
+                    println!("{}END: {}", String::from(" ").repeat(indent), stringify!(#fn_name));
+                    let new_indent = indent.to_string();
+                    std::env::set_var("auto_log_indent", new_indent);
+                }
+              
                 result
             }
     };

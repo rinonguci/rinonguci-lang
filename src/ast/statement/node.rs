@@ -8,7 +8,7 @@ use super::Statement;
 #[derive(Debug)]
 pub struct LetStatement {
     pub token: Token,
-    pub name: Option<String>,
+    pub name: String,
     pub value: Option<Box<ExpressionType>>,
 }
 
@@ -21,7 +21,7 @@ impl Node for LetStatement {
         let mut out = String::new();
         out.push_str(&self.token_literal());
         out.push_str(" ");
-        out.push_str(&self.name.as_ref().unwrap().to_string());
+        out.push_str(&self.name.to_string());
         out.push_str(" = ");
 
         if let Some(ref value) = self.value {
@@ -68,21 +68,16 @@ impl Statement for ReturnStatement {
 
 #[derive(Debug)]
 pub struct ExpressionStatement {
-    pub token: Token,
-    pub expression: Option<Box<ExpressionType>>,
+    pub expression: Box<ExpressionType>,
 }
 
 impl Node for ExpressionStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string()
+        self.expression.as_ref().token_literal()
     }
 
     fn string(&self) -> String {
-        if let Some(ref expression) = self.expression {
-            expression.string()
-        } else {
-            String::new()
-        }
+        self.expression.string()
     }
 }
 impl Statement for ExpressionStatement {

@@ -41,7 +41,7 @@ impl Expression for IntegerLiteral {
 #[derive(Debug)]
 pub struct PrefixExpression {
     pub operator: Token,
-    pub right: Option<Box<ExpressionType>>,
+    pub right: Box<ExpressionType>,
 }
 
 impl Node for PrefixExpression {
@@ -53,7 +53,7 @@ impl Node for PrefixExpression {
         let mut out = String::new();
         out.push_str("(");
         out.push_str(&self.operator.to_string());
-        out.push_str(&self.right.as_ref().unwrap().string());
+        out.push_str(&self.right.as_ref().string());
         out.push_str(")");
 
         out
@@ -66,9 +66,9 @@ impl Expression for PrefixExpression {
 
 #[derive(Debug)]
 pub struct InfixExpression {
-    pub left: Option<Box<ExpressionType>>,
     pub operator: Token,
-    pub right: Option<Box<ExpressionType>>,
+    pub left: Box<ExpressionType>,
+    pub right: Box<ExpressionType>,
 }
 
 impl Node for InfixExpression {
@@ -79,11 +79,11 @@ impl Node for InfixExpression {
     fn string(&self) -> String {
         let mut out = String::new();
         out.push_str("(");
-        out.push_str(&self.left.as_ref().unwrap().string());
+        out.push_str(&self.left.as_ref().string());
         out.push_str(" ");
         out.push_str(&self.operator.to_string());
         out.push_str(" ");
-        out.push_str(&self.right.as_ref().unwrap().string());
+        out.push_str(&self.right.as_ref().string());
         out.push_str(")");
 
         out

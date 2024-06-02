@@ -1,4 +1,6 @@
-use crate::{ ast::Node, parser::Parser };
+use crate::parser::Parser;
+
+use ast::Node;
 use lexer::Lexer;
 
 pub mod ast;
@@ -8,12 +10,13 @@ pub mod token;
 
 fn main() {
     let input = r#"
-          5 + 5;
+        a - b * c * f * d * e;
         "#;
 
     let l = Lexer::new(input.to_string());
     let mut p = Parser::new(l);
     let program = p.parse_program();
 
-    println!("code: {:#?}", program.string());
+    println!("EQ === {:#?}", program);
+    println!("EQ === {:#?}", program.string());
 }

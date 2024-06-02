@@ -1,16 +1,47 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::mem::{discriminant, Discriminant};
+use std::mem::{ discriminant, Discriminant };
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {
     LOWEST,
-    EQUALS,      // ==
+    EQUALS, // ==
     LESSGREATER, // > or <
-    SUM,         // +
-    PRODUCT,     // *
-    PREFIX,      // -X or !X
-    CALL,        // myFunction(X)
+    SUM, // +
+    PRODUCT, // *
+    PREFIX, // -X or !X
+    CALL, // myFunction(X)
+}
+
+impl Precedence {
+    pub fn to_int(&self) -> i32 {
+        match self {
+            Precedence::LOWEST => 1,
+            Precedence::EQUALS => 2,
+            Precedence::LESSGREATER => 3,
+            Precedence::SUM => 4,
+            Precedence::PRODUCT => 5,
+            Precedence::PREFIX => 6,
+            Precedence::CALL => 7,
+        }
+    }
+
+    pub fn from_int(i: i32) -> Self {
+        match i {
+            1 => Precedence::LOWEST,
+            2 => Precedence::EQUALS,
+            3 => Precedence::LESSGREATER,
+            4 => Precedence::SUM,
+            5 => Precedence::PRODUCT,
+            6 => Precedence::PREFIX,
+            7 => Precedence::CALL,
+            _ => Precedence::LOWEST,
+        }
+    }
+
+    pub fn sum(self, i: i32) -> Self {
+        Precedence::from_int(self.to_int() + i)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -27,13 +58,13 @@ pub enum Token {
     ASSIGN,
     PLUS,
     MINUS,
-    BANG,     // !
+    BANG, // !
     ASTERISK, // *
-    SLASH,    // /
+    SLASH, // /
 
-    GT,     // >
-    LT,     // <
-    EQ,     // ==
+    GT, // >
+    LT, // <
+    EQ, // ==
     NOT_EQ, // !=
 
     //Delimeters
