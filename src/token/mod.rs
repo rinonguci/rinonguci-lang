@@ -1,16 +1,16 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::mem::{ discriminant, Discriminant };
+use std::mem::{discriminant, Discriminant};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {
     LOWEST,
-    EQUALS, // ==
+    EQUALS,      // ==
     LESSGREATER, // > or <
-    SUM, // +
-    PRODUCT, // *
-    PREFIX, // -X or !X
-    CALL, // myFunction(X)
+    SUM,         // +
+    PRODUCT,     // *
+    PREFIX,      // -X or !X
+    CALL,        // myFunction(X)
 }
 
 impl Precedence {
@@ -55,25 +55,25 @@ pub enum Token {
     INT(i64),
 
     // Operators
-    ASSIGN,
-    PLUS,
-    MINUS,
-    BANG, // !
+    ASSIGN,   // =
+    PLUS,     // +
+    MINUS,    // -
+    BANG,     // !
     ASTERISK, // *
-    SLASH, // /
+    SLASH,    // /
 
-    GT, // >
-    LT, // <
-    EQ, // ==
+    GT,     // >
+    LT,     // <
+    EQ,     // ==
     NOT_EQ, // !=
 
     //Delimeters
-    COMMA,
-    SEMICOLON,
-    LPAREN,
-    RPAREN,
-    LBRACE,
-    RBRACE,
+    COMMA,     // ,
+    SEMICOLON, // ;
+    LPAREN,    // (
+    RPAREN,    // )
+    LBRACE,    // {
+    RBRACE,    // }
 
     // keywords
     FUNCTION,
@@ -91,30 +91,30 @@ impl Token {
             Token::ILLEGAL(c) => c.to_string(),
             Token::IDENT(s) => s.to_string(),
             Token::INT(i) => i.to_string(),
-            Token::EOF => String::from("EOF"),
-            Token::ASSIGN => String::from("="),
-            Token::PLUS => String::from("+"),
-            Token::MINUS => String::from("-"),
-            Token::BANG => String::from("!"),
-            Token::ASTERISK => String::from("*"),
-            Token::SLASH => String::from("/"),
-            Token::GT => String::from(">"),
-            Token::LT => String::from("<"),
-            Token::EQ => String::from("=="),
-            Token::NOT_EQ => String::from("!="),
-            Token::COMMA => String::from(","),
-            Token::SEMICOLON => String::from(";"),
-            Token::LPAREN => String::from("("),
-            Token::RPAREN => String::from(")"),
-            Token::LBRACE => String::from("{"),
-            Token::RBRACE => String::from("}"),
-            Token::FUNCTION => String::from("fn"),
-            Token::LET => String::from("let"),
-            Token::TRUE => String::from("true"),
-            Token::FALSE => String::from("false"),
-            Token::IF => String::from("if"),
-            Token::ELSE => String::from("else"),
-            Token::RETURN => String::from("return"),
+            Token::EOF => "EOF".into(),
+            Token::ASSIGN => "=".into(),
+            Token::PLUS => "+".into(),
+            Token::MINUS => "-".into(),
+            Token::BANG => "!".into(),
+            Token::ASTERISK => "*".into(),
+            Token::SLASH => "/".into(),
+            Token::GT => ">".into(),
+            Token::LT => "<".into(),
+            Token::EQ => "==".into(),
+            Token::NOT_EQ => "!=".into(),
+            Token::COMMA => ",".into(),
+            Token::SEMICOLON => ";".into(),
+            Token::LPAREN => "(".into(),
+            Token::RPAREN => ")".into(),
+            Token::LBRACE => "{".into(),
+            Token::RBRACE => "}".into(),
+            Token::FUNCTION => "fn".into(),
+            Token::LET => "let".into(),
+            Token::TRUE => "true".into(),
+            Token::FALSE => "false".into(),
+            Token::IF => "if".into(),
+            Token::ELSE => "else".into(),
+            Token::RETURN => "return".into(),
         }
     }
 
@@ -136,6 +136,7 @@ impl Token {
             Token::MINUS => Precedence::SUM,
             Token::SLASH => Precedence::PRODUCT,
             Token::ASTERISK => Precedence::PRODUCT,
+            Token::LPAREN => Precedence::CALL,
             _ => Precedence::LOWEST,
         }
     }

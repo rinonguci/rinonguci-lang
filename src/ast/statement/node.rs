@@ -3,13 +3,13 @@ use crate::{
     token::Token,
 };
 
-use super::Statement;
+use super::{Statement, StatementType};
 
 #[derive(Debug)]
 pub struct LetStatement {
     pub token: Token,
     pub name: String,
-    pub value: Option<Box<ExpressionType>>,
+    pub value: Box<ExpressionType>,
 }
 
 impl Node for LetStatement {
@@ -24,9 +24,7 @@ impl Node for LetStatement {
         out.push_str(&self.name.to_string());
         out.push_str(" = ");
 
-        if let Some(ref value) = self.value {
-            out.push_str(&value.string());
-        }
+        out.push_str(&self.value.string());
 
         out.push_str(";");
 
@@ -40,7 +38,7 @@ impl Statement for LetStatement {
 #[derive(Debug)]
 pub struct ReturnStatement {
     pub token: Token,
-    pub value: Option<Box<ExpressionType>>,
+    pub value: Box<ExpressionType>,
 }
 
 impl Node for ReturnStatement {
@@ -53,9 +51,7 @@ impl Node for ReturnStatement {
         out.push_str(&self.token_literal());
         out.push_str(" ");
 
-        if let Some(ref value) = self.value {
-            out.push_str(&value.string());
-        }
+        out.push_str(&self.value.string());
 
         out.push_str(";");
 
@@ -81,5 +77,29 @@ impl Node for ExpressionStatement {
     }
 }
 impl Statement for ExpressionStatement {
+    fn statement_node(&self) {}
+}
+
+#[derive(Debug)]
+pub struct BlockStatement {
+    pub token: Token,
+    pub statements: Vec<Box<StatementType>>,
+}
+
+impl Node for BlockStatement {
+    fn token_literal(&self) -> String {
+        self.token.to_string()
+    }
+
+    fn string(&self) -> String {
+        let mut out = String::new();
+        for stmt in &self.statements {
+            out.push_str(&stmt.string());
+        }
+        out
+    }
+}
+
+impl Statement for BlockStatement {
     fn statement_node(&self) {}
 }

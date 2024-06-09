@@ -10,7 +10,7 @@ pub mod token;
 
 fn main() {
     let input = r#"
-        a - b * c * f * d * e;
+      a + add(b * c) + d
         "#;
 
     let l = Lexer::new(input.to_string());

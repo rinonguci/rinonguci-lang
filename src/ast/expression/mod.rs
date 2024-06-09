@@ -3,7 +3,10 @@ pub mod node;
 use std::fmt::Debug;
 
 use enum_as_inner::EnumAsInner;
-use node::{Identifier, InfixExpression, IntegerLiteral, PrefixExpression};
+use node::{
+    Boolean, CallExpression, FunctionLiteral, Identifier, IfExpression, InfixExpression,
+    IntegerLiteral, PrefixExpression,
+};
 
 use crate::ast::Node;
 
@@ -17,6 +20,10 @@ pub enum ExpressionType {
     IntegerLiteral(IntegerLiteral),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
+    Boolean(Boolean),
+    If(IfExpression),
+    Fn(FunctionLiteral),
+    Call(CallExpression),
 }
 
 impl Node for ExpressionType {
@@ -26,6 +33,10 @@ impl Node for ExpressionType {
             ExpressionType::IntegerLiteral(expr) => expr.token_literal(),
             ExpressionType::Prefix(expr) => expr.token_literal(),
             ExpressionType::Infix(expr) => expr.token_literal(),
+            ExpressionType::Boolean(expr) => expr.token_literal(),
+            ExpressionType::If(expr) => expr.token_literal(),
+            ExpressionType::Fn(expr) => expr.token_literal(),
+            ExpressionType::Call(expr) => expr.token_literal(),
         }
     }
 
@@ -35,6 +46,10 @@ impl Node for ExpressionType {
             ExpressionType::IntegerLiteral(expr) => expr.string(),
             ExpressionType::Prefix(expr) => expr.string(),
             ExpressionType::Infix(expr) => expr.string(),
+            ExpressionType::Boolean(expr) => expr.string(),
+            ExpressionType::If(expr) => expr.string(),
+            ExpressionType::Fn(expr) => expr.string(),
+            ExpressionType::Call(expr) => expr.string(),
         }
     }
 }

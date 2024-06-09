@@ -49,9 +49,9 @@ mod tests {
             statements: vec![Box::new(StatementType::Let(LetStatement {
                 token: Token::LET,
                 name: "myVar".to_string(),
-                value: Some(Box::new(ExpressionType::Identifier(Identifier {
+                value: Box::new(ExpressionType::Identifier(Identifier {
                     token: Token::IDENT("anotherVar".to_string()),
-                }))),
+                })),
             }))],
         };
 
@@ -78,10 +78,11 @@ mod tests {
         );
 
         for stmt in program.statements {
+            let stmt = stmt.as_return().unwrap();
             assert_eq!(
                 stmt.token_literal(),
-                "return".to_string(),
-                "stmt.TokenLiteral not 'return'. got={}",
+                "return",
+                "stmt.TokenLiteral not 'return', got={}",
                 stmt.token_literal()
             );
         }
@@ -224,6 +225,24 @@ mod tests {
     #[test]
     fn test_operator_precedence_parsing() {
         let tests = vec![
+            ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g))",
+            ),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            ("(5 + 5) * 2", "((5 + 5) * 2)"),
+            ("2 / (5 + 5)", "(2 / (5 + 5))"),
+            ("-(5 + 5)", "(-(5 + 5))"),
+            ("!(true == true)", "(!(true == true))"),
+            ("true", "true"),
+            ("false", "false"),
+            ("3 > 5 == false", "((3 > 5) == false)"),
+            ("3 < 5 == true", "((3 < 5) == true)"),
             ("-a * b", "((-a) * b)"),
             ("!-a", "(!(-a))"),
             ("a + b + c", "((a + b) + c)"),
@@ -250,5 +269,192 @@ mod tests {
 
             assert_eq!(actual, expected, "expected={}, got={}", expected, actual);
         }
+    }
+
+    #[test]
+    fn test_if_expression() {
+        let input = "if (x < y) { x }";
+        let l = Lexer::new(input.to_string());
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+
+        assert_eq!(
+            program.statements.len(),
+            1,
+            "program.Body does not contain 1 statement"
+        );
+
+        let stmt = program.statements[0].as_expression().unwrap();
+        let exp = stmt.expression.as_ref().as_if().unwrap();
+
+        assert_eq!(
+            exp.condition.string(),
+            "(x < y)",
+            "exp.Condition is not 'x < y'. got={}",
+            exp.condition.string()
+        );
+
+        assert_eq!(
+            exp.consequence.as_block().unwrap().statements.len(),
+            1,
+            "consequence is not 1 statements. got={}",
+            exp.consequence.as_block().unwrap().statements.len()
+        );
+
+        let consequence = exp.consequence.as_block().unwrap().statements[0]
+            .as_expression()
+            .unwrap();
+
+        assert_eq!(
+            consequence.expression.as_ref().token_literal(),
+            "x",
+            "consequence is not 'x'. got={}",
+            consequence.expression.as_ref().token_literal()
+        );
+    }
+
+    #[test]
+    fn test_fn_literal_expression() {
+        let input = "fn(x, y) { x + y; }";
+        let l = Lexer::new(input.to_string());
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+
+        assert_eq!(
+            program.statements.len(),
+            1,
+            "program.Body does not contain 1 statement"
+        );
+
+        let stmt = program.statements[0].as_expression().unwrap();
+        let exp = stmt.expression.as_ref().as_fn().unwrap();
+
+        assert_eq!(
+            exp.parameters.len(),
+            2,
+            "function literal parameters wrong. want 2, got={}",
+            exp.parameters.len()
+        );
+
+        assert_eq!(
+            exp.parameters[0].as_ref().token_literal(),
+            "x",
+            "parameter is not 'x'. got={}",
+            exp.parameters[0].as_ref().token_literal()
+        );
+
+        assert_eq!(
+            exp.parameters[1].as_ref().token_literal(),
+            "y",
+            "parameter is not 'y'. got={}",
+            exp.parameters[1].as_ref().token_literal()
+        );
+
+        assert_eq!(
+            exp.body.as_block().unwrap().statements.len(),
+            1,
+            "body is not 1 statements. got={}",
+            exp.body.as_block().unwrap().statements.len()
+        );
+
+        let body = exp.body.as_block().unwrap().statements[0]
+            .as_expression()
+            .unwrap();
+
+        assert_eq!(
+            body.expression.as_ref().string(),
+            "(x + y)",
+            "body is not 'x + y'. got={}",
+            body.expression.as_ref().string()
+        );
+    }
+
+    #[test]
+    fn test_function_parameter_parsing() {
+        let tests = vec![
+            ("fn() {};", vec![]),
+            ("fn(x) {};", vec!["x"]),
+            ("fn(x, y, z) {};", vec!["x", "y", "z"]),
+        ];
+
+        for (input, expected_params) in tests {
+            let l = Lexer::new(input.to_string());
+            let mut p = Parser::new(l);
+            let program = p.parse_program();
+
+            let stmt = program.statements[0].as_expression().unwrap();
+            let function = stmt.expression.as_ref().as_fn().unwrap();
+
+            assert_eq!(
+                function.parameters.len(),
+                expected_params.len(),
+                "length parameters wrong. want {}, got={}",
+                expected_params.len(),
+                function.parameters.len()
+            );
+
+            for (i, ident) in expected_params.iter().enumerate() {
+                let param = function.parameters[i].as_ref();
+                assert_eq!(
+                    param.token_literal(),
+                    ident.to_string(),
+                    "parameter is not '{}'. got={}",
+                    ident,
+                    param.token_literal()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_call_expression_parsing() {
+        let input = "add(1, 2 * 3, 4 + 5);";
+        let l = Lexer::new(input.to_string());
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+
+        assert_eq!(
+            program.statements.len(),
+            1,
+            "program.Statements does not contain 1 statement"
+        );
+
+        let stmt = program.statements[0].as_expression().unwrap();
+        let exp = stmt.expression.as_ref().as_call().unwrap();
+
+        assert_eq!(
+            exp.function.as_ref().token_literal(),
+            "add",
+            "function is not 'add'. got={}",
+            exp.function.as_ref().token_literal()
+        );
+
+        assert_eq!(
+            exp.arguments.len(),
+            3,
+            "wrong length of arguments. got={}",
+            exp.arguments.len()
+        );
+
+        assert_eq!(
+            exp.arguments[0].as_ref().string(),
+            "1",
+            "argument is not '1'. got={}",
+            exp.arguments[0].as_ref().string()
+        );
+
+        assert_eq!(
+            exp.arguments[1].as_ref().string(),
+            "(2 * 3)",
+            "argument is not '2 * 3'. got={}",
+            exp.arguments[1].as_ref().string()
+        );
+
+        assert_eq!(
+            exp.arguments[2].as_ref().string(),
+            "(4 + 5)",
+            "argument is not '4 + 5'. got={}",
+            exp.arguments[2].as_ref().string()
+        );
     }
 }
