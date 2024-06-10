@@ -87,7 +87,6 @@ impl Parser {
     fn parse_boolean(&mut self) -> Box<ExpressionType> {
         Box::new(ExpressionType::Boolean(Boolean {
             token: self.cur_token.clone(),
-            value: self.cur_token_is(Token::TRUE),
         }))
     }
 

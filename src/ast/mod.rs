@@ -1,13 +1,22 @@
-use std::fmt::Debug;
+use std::{any::Any, fmt::Debug};
 
+use enum_as_inner::EnumAsInner;
+use expression::ExpressionType;
 use statement::StatementType;
 
 pub mod expression;
 pub mod statement;
 
-pub trait Node {
+pub trait TNode: Any {
     fn token_literal(&self) -> String;
     fn string(&self) -> String;
+}
+
+#[derive(Debug, EnumAsInner)]
+pub enum Node {
+    Statement(StatementType),
+    Expression(ExpressionType),
+    Program(Program),
 }
 
 #[derive(Debug)]
@@ -15,13 +24,9 @@ pub struct Program {
     pub statements: Vec<Box<StatementType>>,
 }
 
-impl Node for Program {
+impl TNode for Program {
     fn token_literal(&self) -> String {
-        if !self.statements.is_empty() {
-            self.statements[0].token_literal()
-        } else {
-            String::new()
-        }
+        "Program".into()
     }
 
     fn string(&self) -> String {
@@ -31,5 +36,11 @@ impl Node for Program {
         }
 
         out
+    }
+}
+
+impl Program {
+    pub fn to_node(self) -> Node {
+        Node::Program(self)
     }
 }

@@ -8,9 +8,11 @@ use node::{
     IntegerLiteral, PrefixExpression,
 };
 
-use crate::ast::Node;
+use crate::ast::TNode;
 
-pub trait Expression: Node + Debug {
+use super::Node;
+
+pub trait TExpression: TNode + Debug {
     fn expression_node(&self);
 }
 
@@ -26,7 +28,7 @@ pub enum ExpressionType {
     Call(CallExpression),
 }
 
-impl Node for ExpressionType {
+impl TNode for ExpressionType {
     fn token_literal(&self) -> String {
         match self {
             ExpressionType::Identifier(expr) => expr.token_literal(),
@@ -51,5 +53,11 @@ impl Node for ExpressionType {
             ExpressionType::Fn(expr) => expr.string(),
             ExpressionType::Call(expr) => expr.string(),
         }
+    }
+}
+
+impl ExpressionType {
+    pub fn to_node(self: Box<ExpressionType>) -> Box<Node> {
+        Box::new(Node::Expression(*self))
     }
 }

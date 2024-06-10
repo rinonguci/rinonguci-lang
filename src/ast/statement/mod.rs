@@ -4,9 +4,11 @@ use enum_as_inner::EnumAsInner;
 use node::{BlockStatement, ExpressionStatement, LetStatement, ReturnStatement};
 use std::fmt::Debug;
 
-use crate::ast::Node;
+use crate::ast::TNode;
 
-pub trait Statement: Node + Debug {
+use super::Node;
+
+pub trait TStatement: TNode + Debug {
     fn statement_node(&self);
 }
 
@@ -18,7 +20,7 @@ pub enum StatementType {
     Block(BlockStatement),
 }
 
-impl Node for StatementType {
+impl TNode for StatementType {
     fn token_literal(&self) -> String {
         match self {
             StatementType::Let(stmt) => stmt.token_literal(),
@@ -35,5 +37,11 @@ impl Node for StatementType {
             StatementType::Expression(stmt) => stmt.string(),
             StatementType::Block(stmt) => stmt.string(),
         }
+    }
+}
+
+impl StatementType {
+    pub fn to_node(self: Box<StatementType>) -> Box<Node> {
+        Box::new(Node::Statement(*self))
     }
 }

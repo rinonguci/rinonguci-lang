@@ -1,16 +1,16 @@
 use crate::{
-    ast::{statement::StatementType, Node},
+    ast::{statement::StatementType, TNode},
     token::Token,
 };
 
-use super::{Expression, ExpressionType};
+use super::{ExpressionType, TExpression};
 
 #[derive(Debug)]
 pub struct Identifier {
     pub token: Token,
 }
 
-impl Node for Identifier {
+impl TNode for Identifier {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -19,7 +19,7 @@ impl Node for Identifier {
         self.token.to_string()
     }
 }
-impl Expression for Identifier {
+impl TExpression for Identifier {
     fn expression_node(&self) {}
 }
 
@@ -28,7 +28,7 @@ pub struct IntegerLiteral {
     pub token: Token,
 }
 
-impl Node for IntegerLiteral {
+impl TNode for IntegerLiteral {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -37,7 +37,7 @@ impl Node for IntegerLiteral {
         self.token.to_string()
     }
 }
-impl Expression for IntegerLiteral {
+impl TExpression for IntegerLiteral {
     fn expression_node(&self) {}
 }
 
@@ -47,7 +47,7 @@ pub struct PrefixExpression {
     pub right: Box<ExpressionType>,
 }
 
-impl Node for PrefixExpression {
+impl TNode for PrefixExpression {
     fn token_literal(&self) -> String {
         self.operator.to_string()
     }
@@ -63,7 +63,7 @@ impl Node for PrefixExpression {
     }
 }
 
-impl Expression for PrefixExpression {
+impl TExpression for PrefixExpression {
     fn expression_node(&self) {}
 }
 
@@ -74,7 +74,7 @@ pub struct InfixExpression {
     pub right: Box<ExpressionType>,
 }
 
-impl Node for InfixExpression {
+impl TNode for InfixExpression {
     fn token_literal(&self) -> String {
         self.operator.to_string()
     }
@@ -93,17 +93,16 @@ impl Node for InfixExpression {
     }
 }
 
-impl Expression for InfixExpression {
+impl TExpression for InfixExpression {
     fn expression_node(&self) {}
 }
 
 #[derive(Debug)]
 pub struct Boolean {
     pub token: Token,
-    pub value: bool,
 }
 
-impl Node for Boolean {
+impl TNode for Boolean {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -113,7 +112,7 @@ impl Node for Boolean {
     }
 }
 
-impl Expression for Boolean {
+impl TExpression for Boolean {
     fn expression_node(&self) {}
 }
 
@@ -125,7 +124,7 @@ pub struct IfExpression {
     pub alternative: Option<Box<StatementType>>,
 }
 
-impl Node for IfExpression {
+impl TNode for IfExpression {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -147,7 +146,7 @@ impl Node for IfExpression {
     }
 }
 
-impl Expression for IfExpression {
+impl TExpression for IfExpression {
     fn expression_node(&self) {}
 }
 
@@ -158,7 +157,7 @@ pub struct FunctionLiteral {
     pub body: Box<StatementType>,
 }
 
-impl Node for FunctionLiteral {
+impl TNode for FunctionLiteral {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -185,7 +184,7 @@ pub struct CallExpression {
     pub arguments: Vec<Box<ExpressionType>>,
 }
 
-impl Node for CallExpression {
+impl TNode for CallExpression {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -204,6 +203,6 @@ impl Node for CallExpression {
     }
 }
 
-impl Expression for CallExpression {
+impl TExpression for CallExpression {
     fn expression_node(&self) {}
 }

@@ -1,3 +1,4 @@
+use enum_as_inner::EnumAsInner;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::mem::{discriminant, Discriminant};
@@ -44,8 +45,8 @@ impl Precedence {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 #[allow(non_camel_case_types)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq, EnumAsInner)]
 pub enum Token {
     EOF,
     ILLEGAL(char),

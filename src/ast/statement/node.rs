@@ -1,9 +1,9 @@
 use crate::{
-    ast::{expression::ExpressionType, Node},
+    ast::{expression::ExpressionType, TNode},
     token::Token,
 };
 
-use super::{Statement, StatementType};
+use super::{StatementType, TStatement};
 
 #[derive(Debug)]
 pub struct LetStatement {
@@ -12,7 +12,7 @@ pub struct LetStatement {
     pub value: Box<ExpressionType>,
 }
 
-impl Node for LetStatement {
+impl TNode for LetStatement {
     fn token_literal(&self) -> String {
         self.token.to_string().to_string()
     }
@@ -31,7 +31,7 @@ impl Node for LetStatement {
         out
     }
 }
-impl Statement for LetStatement {
+impl TStatement for LetStatement {
     fn statement_node(&self) {}
 }
 
@@ -41,7 +41,7 @@ pub struct ReturnStatement {
     pub value: Box<ExpressionType>,
 }
 
-impl Node for ReturnStatement {
+impl TNode for ReturnStatement {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -58,7 +58,7 @@ impl Node for ReturnStatement {
         out
     }
 }
-impl Statement for ReturnStatement {
+impl TStatement for ReturnStatement {
     fn statement_node(&self) {}
 }
 
@@ -67,7 +67,7 @@ pub struct ExpressionStatement {
     pub expression: Box<ExpressionType>,
 }
 
-impl Node for ExpressionStatement {
+impl TNode for ExpressionStatement {
     fn token_literal(&self) -> String {
         self.expression.as_ref().token_literal()
     }
@@ -76,7 +76,7 @@ impl Node for ExpressionStatement {
         self.expression.string()
     }
 }
-impl Statement for ExpressionStatement {
+impl TStatement for ExpressionStatement {
     fn statement_node(&self) {}
 }
 
@@ -86,7 +86,7 @@ pub struct BlockStatement {
     pub statements: Vec<Box<StatementType>>,
 }
 
-impl Node for BlockStatement {
+impl TNode for BlockStatement {
     fn token_literal(&self) -> String {
         self.token.to_string()
     }
@@ -100,6 +100,6 @@ impl Node for BlockStatement {
     }
 }
 
-impl Statement for BlockStatement {
+impl TStatement for BlockStatement {
     fn statement_node(&self) {}
 }
