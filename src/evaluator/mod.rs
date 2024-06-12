@@ -1,10 +1,15 @@
+use rinonguci_script::new_error;
+
 use crate::{
     ast::{
-        expression::{self, ExpressionType},
-        statement::{node::ExpressionStatement, StatementType},
+        expression::{self, node::IfExpression, ExpressionType},
+        statement::{
+            node::{BlockStatement, ExpressionStatement},
+            StatementType,
+        },
         Node, Program,
     },
-    object::{Boolean, Integer, Null, Object, ObjectType},
+    object::{Boolean, Error, Integer, Null, Object, ObjectType, ReturnValue},
     token::Token,
 };
 
@@ -36,6 +41,7 @@ fn eval_expression(expr: ExpressionType) -> Object {
             operator,
             right,
         }) => eval_infix_expression(operator, left.to_node(), right.to_node()),
+        ExpressionType::If(ie) => eval_if_expression(ie),
         _ => Object::Null(Null {}),
     }
 }
@@ -43,6 +49,16 @@ fn eval_expression(expr: ExpressionType) -> Object {
 fn eval_statement(stmt: StatementType) -> Object {
     match stmt {
         StatementType::Expression(ExpressionStatement { expression }) => eval(expression.to_node()),
+        StatementType::Block(BlockStatement {
+            statements,
+            token: _,
+        }) => eval_statements(statements),
+        StatementType::Return(node) => {
+            let val = eval(node.value.to_node());
+            Object::Return(ReturnValue {
+                value: Box::new(val),
+            })
+        }
         _ => Object::Null(Null {}),
     }
 }
@@ -55,6 +71,14 @@ fn eval_statements(stmts: Vec<Box<StatementType>>) -> Object {
     let mut result = Object::Null(Null {});
     for statement in stmts {
         result = eval(statement.to_node());
+
+        if result.is_return() {
+            return result;
+        }
+
+        if result.is_error() {
+            return result;
+        }
     }
 
     result
@@ -72,7 +96,7 @@ fn eval_prefix_expression(operator: Token, right: Object) -> Object {
     match operator {
         Token::BANG => eval_bang_operator_expression(right),
         Token::MINUS => evel_minus_prefix_operator_expression(right),
-        _ => Object::Null(Null {}),
+        _ => new_error!("unknown operator: {:?} {:?}", operator, right.object_type()),
     }
 }
 
@@ -87,7 +111,7 @@ fn eval_bang_operator_expression(right: Object) -> Object {
 
 fn evel_minus_prefix_operator_expression(right: Object) -> Object {
     if right.object_type() != ObjectType::INTEGER {
-        return Object::Null(Null {});
+        return new_error!("unknown operator: -{:?}", right.object_type());
     }
     let value = right.as_integer().unwrap().value;
     Object::Integer(Integer { value: -value })
@@ -106,44 +130,81 @@ fn eval_infix_expression(operator: Token, left: Box<Node>, right: Box<Node>) -> 
         }),
         _ => match (left.object_type(), right.object_type()) {
             (ObjectType::INTEGER, ObjectType::INTEGER) => {
-                let left = left.as_integer().unwrap();
-                let right = right.as_integer().unwrap();
                 eval_integer_infix_expression(operator, left, right)
             }
-            _ => Object::Null(Null {}),
+            (left_type, right_type) => {
+                if left_type != right_type {
+                    return new_error!(
+                        "type mismatch: {:?} {} {:?}",
+                        left_type,
+                        operator.to_string(),
+                        right_type
+                    );
+                } else {
+                    return new_error!(
+                        "unknown operator: {:?} {} {:?}",
+                        left_type,
+                        operator.to_string(),
+                        right_type
+                    );
+                }
+            }
         },
     }
 }
 
-fn eval_integer_infix_expression(operator: Token, left: &Integer, right: &Integer) -> Object {
-    let left_val = left.value;
-    let right_val = right.value;
+fn eval_integer_infix_expression(operator: Token, left: Object, right: Object) -> Object {
+    match (left, right) {
+        (
+            Object::Integer(Integer { value: left_val }),
+            Object::Integer(Integer { value: right_val }),
+        ) => match operator {
+            Token::PLUS => Object::Integer(Integer {
+                value: left_val + right_val,
+            }),
+            Token::MINUS => Object::Integer(Integer {
+                value: left_val - right_val,
+            }),
+            Token::ASTERISK => Object::Integer(Integer {
+                value: left_val * right_val,
+            }),
+            Token::SLASH => Object::Integer(Integer {
+                value: left_val / right_val,
+            }),
+            Token::LT => Object::Boolean(Boolean {
+                value: left_val < right_val,
+            }),
+            Token::GT => Object::Boolean(Boolean {
+                value: left_val > right_val,
+            }),
+            Token::EQ => Object::Boolean(Boolean {
+                value: left_val == right_val,
+            }),
+            Token::NOT_EQ => Object::Boolean(Boolean {
+                value: left_val != right_val,
+            }),
+            _ => new_error!("unknown operator: {:?}", operator),
+        },
+        _ => new_error!("unknown operator: {:?}", operator),
+    }
+}
 
-    match operator {
-        Token::PLUS => Object::Integer(Integer {
-            value: left_val + right_val,
-        }),
-        Token::MINUS => Object::Integer(Integer {
-            value: left_val - right_val,
-        }),
-        Token::ASTERISK => Object::Integer(Integer {
-            value: left_val * right_val,
-        }),
-        Token::SLASH => Object::Integer(Integer {
-            value: left_val / right_val,
-        }),
-        Token::LT => Object::Boolean(Boolean {
-            value: left_val < right_val,
-        }),
-        Token::GT => Object::Boolean(Boolean {
-            value: left_val > right_val,
-        }),
-        Token::EQ => Object::Boolean(Boolean {
-            value: left_val == right_val,
-        }),
-        Token::NOT_EQ => Object::Boolean(Boolean {
-            value: left_val != right_val,
-        }),
-        _ => Object::Null(Null {}),
+fn eval_if_expression(ie: IfExpression) -> Object {
+    let condition = eval(ie.condition.to_node());
+
+    if is_truthy(condition) {
+        return eval(ie.consequence.to_node());
+    } else if ie.alternative.is_some() {
+        return eval(ie.alternative.unwrap().to_node());
+    } else {
+        return Object::Null(Null {});
+    }
+}
+
+fn is_truthy(obj: Object) -> bool {
+    match obj {
+        Object::Null(_) => false,
+        Object::Boolean(Boolean { value }) => value,
+        _ => true,
     }
 }

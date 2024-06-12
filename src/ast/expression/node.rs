@@ -170,8 +170,8 @@ impl TNode for FunctionLiteral {
         }
         out.push_str(&self.token_literal());
         out.push_str("(");
-        out.push_str(&params.join(", "));
-        out.push_str(") ");
+        out.push_str(&params.join(","));
+        out.push_str(")");
         out.push_str(&self.body.string());
         out
     }

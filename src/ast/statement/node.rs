@@ -43,7 +43,7 @@ pub struct ReturnStatement {
 
 impl TNode for ReturnStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string()
+        self.token.to_string().into()
     }
 
     fn string(&self) -> String {
@@ -88,13 +88,15 @@ pub struct BlockStatement {
 
 impl TNode for BlockStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string()
+        self.token.to_string().into()
     }
 
     fn string(&self) -> String {
         let mut out = String::new();
         for stmt in &self.statements {
+            out.push_str("{");
             out.push_str(&stmt.string());
+            out.push_str("}");
         }
         out
     }
