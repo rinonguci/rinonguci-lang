@@ -9,21 +9,24 @@ use crate::{
         },
         Node, Program,
     },
-    object::{Boolean, Error, Integer, Null, Object, ObjectType, ReturnValue},
+    object::{
+        environment::Environment, Boolean, Error, Function, Integer, Null, Object, ObjectType,
+        ReturnValue,
+    },
     token::Token,
 };
 
 pub mod test;
 
-pub fn eval(node: Box<Node>) -> Object {
+pub fn eval(node: Box<Node>, env: &mut Environment) -> Object {
     match *node {
-        Node::Expression(expr) => eval_expression(expr),
-        Node::Statement(stmt) => eval_statement(stmt),
-        Node::Program(program) => eval_program(program),
+        Node::Expression(expr) => eval_expression(expr, env),
+        Node::Statement(stmt) => eval_statement(stmt, env),
+        Node::Program(program) => eval_program(program, env),
     }
 }
 
-fn eval_expression(expr: ExpressionType) -> Object {
+fn eval_expression(expr: ExpressionType, env: &mut Environment) -> Object {
     match expr {
         ExpressionType::IntegerLiteral(expression::node::IntegerLiteral { token }) => {
             Object::Integer(Integer {
@@ -34,43 +37,67 @@ fn eval_expression(expr: ExpressionType) -> Object {
             evel_boolean_expression(token)
         }
         ExpressionType::Prefix(expression::node::PrefixExpression { operator, right }) => {
-            eval_prefix_expression(operator, eval(right.to_node()))
+            eval_prefix_expression(operator, eval(right.to_node(), env))
         }
         ExpressionType::Infix(expression::node::InfixExpression {
             left,
             operator,
             right,
-        }) => eval_infix_expression(operator, left.to_node(), right.to_node()),
-        ExpressionType::If(ie) => eval_if_expression(ie),
-        _ => Object::Null(Null {}),
-    }
-}
-
-fn eval_statement(stmt: StatementType) -> Object {
-    match stmt {
-        StatementType::Expression(ExpressionStatement { expression }) => eval(expression.to_node()),
-        StatementType::Block(BlockStatement {
-            statements,
-            token: _,
-        }) => eval_statements(statements),
-        StatementType::Return(node) => {
-            let val = eval(node.value.to_node());
-            Object::Return(ReturnValue {
-                value: Box::new(val),
+        }) => eval_infix_expression(operator, left.to_node(), right.to_node(), env),
+        ExpressionType::If(ie) => eval_if_expression(ie, env),
+        ExpressionType::Identifier(ident) => {
+            let val = env.get(ident.token.to_string());
+            match val {
+                Some(val) => val,
+                None => new_error!("identifier not found: {}", ident.token.to_string()),
+            }
+        }
+        ExpressionType::Fn(func) => {
+            let params = func.parameters;
+            let body = func.body;
+            Object::Function(Function {
+                parameters: params,
+                body: body,
+                env: Some(env.clone()),
             })
         }
         _ => Object::Null(Null {}),
     }
 }
 
-fn eval_program(program: Program) -> Object {
-    eval_statements(program.statements)
+fn eval_statement(stmt: StatementType, env: &mut Environment) -> Object {
+    match stmt {
+        StatementType::Expression(ExpressionStatement { expression }) => {
+            eval(expression.to_node(), env)
+        }
+        StatementType::Block(BlockStatement {
+            statements,
+            token: _,
+        }) => eval_statements(statements, env),
+        StatementType::Return(node) => {
+            let val = eval(node.value.to_node(), env);
+            Object::Return(ReturnValue {
+                value: Box::new(val),
+            })
+        }
+        StatementType::Let(let_stmt) => {
+            let val = eval(let_stmt.value.to_node(), env);
+            if val.is_error() {
+                return val;
+            }
+            env.set(let_stmt.name.to_string(), val)
+        }
+    }
 }
 
-fn eval_statements(stmts: Vec<Box<StatementType>>) -> Object {
+fn eval_program(program: Program, env: &mut Environment) -> Object {
+    eval_statements(program.statements, env)
+}
+
+fn eval_statements(stmts: Vec<Box<StatementType>>, env: &mut Environment) -> Object {
     let mut result = Object::Null(Null {});
     for statement in stmts {
-        result = eval(statement.to_node());
+        result = eval(statement.to_node(), env);
 
         if result.is_return() {
             return result;
@@ -117,9 +144,14 @@ fn evel_minus_prefix_operator_expression(right: Object) -> Object {
     Object::Integer(Integer { value: -value })
 }
 
-fn eval_infix_expression(operator: Token, left: Box<Node>, right: Box<Node>) -> Object {
-    let left = eval(left);
-    let right = eval(right);
+fn eval_infix_expression(
+    operator: Token,
+    left: Box<Node>,
+    right: Box<Node>,
+    env: &mut Environment,
+) -> Object {
+    let left = eval(left, env);
+    let right = eval(right, env);
 
     match operator {
         Token::EQ => Object::Boolean(Boolean {
@@ -189,13 +221,13 @@ fn eval_integer_infix_expression(operator: Token, left: Object, right: Object) -
     }
 }
 
-fn eval_if_expression(ie: IfExpression) -> Object {
-    let condition = eval(ie.condition.to_node());
+fn eval_if_expression(ie: IfExpression, env: &mut Environment) -> Object {
+    let condition = eval(ie.condition.to_node(), env);
 
     if is_truthy(condition) {
-        return eval(ie.consequence.to_node());
+        return eval(ie.consequence.to_node(), env);
     } else if ie.alternative.is_some() {
-        return eval(ie.alternative.unwrap().to_node());
+        return eval(ie.alternative.unwrap().to_node(), env);
     } else {
         return Object::Null(Null {});
     }

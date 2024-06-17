@@ -16,7 +16,7 @@ pub trait TExpression: TNode + Debug {
     fn expression_node(&self);
 }
 
-#[derive(Debug, EnumAsInner)]
+#[derive(Debug, EnumAsInner, PartialEq, Clone)]
 pub enum ExpressionType {
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),

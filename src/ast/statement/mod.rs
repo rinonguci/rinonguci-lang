@@ -12,7 +12,7 @@ pub trait TStatement: TNode + Debug {
     fn statement_node(&self);
 }
 
-#[derive(Debug, EnumAsInner)]
+#[derive(Debug, EnumAsInner, PartialEq, Clone)]
 pub enum StatementType {
     Let(LetStatement),
     Return(ReturnStatement),

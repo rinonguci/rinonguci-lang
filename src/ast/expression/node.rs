@@ -5,7 +5,7 @@ use crate::{
 
 use super::{ExpressionType, TExpression};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Identifier {
     pub token: Token,
 }
@@ -23,7 +23,7 @@ impl TExpression for Identifier {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct IntegerLiteral {
     pub token: Token,
 }
@@ -41,7 +41,7 @@ impl TExpression for IntegerLiteral {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct PrefixExpression {
     pub operator: Token,
     pub right: Box<ExpressionType>,
@@ -67,7 +67,7 @@ impl TExpression for PrefixExpression {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct InfixExpression {
     pub operator: Token,
     pub left: Box<ExpressionType>,
@@ -97,7 +97,7 @@ impl TExpression for InfixExpression {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Boolean {
     pub token: Token,
 }
@@ -116,7 +116,7 @@ impl TExpression for Boolean {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct IfExpression {
     pub token: Token,
     pub condition: Box<ExpressionType>,
@@ -150,7 +150,7 @@ impl TExpression for IfExpression {
     fn expression_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FunctionLiteral {
     pub token: Token,
     pub parameters: Vec<Box<ExpressionType>>,
@@ -177,7 +177,7 @@ impl TNode for FunctionLiteral {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CallExpression {
     pub token: Token,
     pub function: Box<ExpressionType>,

@@ -1,5 +1,11 @@
 use core::fmt::Debug;
 use enum_as_inner::EnumAsInner;
+use environment::Environment;
+use std::fmt::Write;
+
+use crate::ast::{expression::ExpressionType, statement::StatementType, TNode};
+
+pub mod environment;
 
 trait TObject {
     fn inspect(&self) -> String;
@@ -19,6 +25,7 @@ pub enum Object {
     Boolean(Boolean),
     Null(Null),
     Return(ReturnValue),
+    Function(Function),
     Error(Error),
 }
 
@@ -30,6 +37,7 @@ impl Debug for Object {
             Object::Null(n) => write!(f, "{:?}", n),
             Object::Return(r) => write!(f, "{:?}", r),
             Object::Error(e) => write!(f, "{:?}", e),
+            _ => write!(f, "Function"),
         }
     }
 }
@@ -41,6 +49,7 @@ impl Object {
             Object::Boolean(b) => b.inspect(),
             Object::Null(n) => n.inspect(),
             Object::Return(r) => r.inspect(),
+            Object::Function(f) => f.inspect(),
             Object::Error(e) => e.inspect(),
         }
     }
@@ -51,6 +60,7 @@ impl Object {
             Object::Boolean(b) => b.object_type(),
             Object::Null(n) => n.object_type(),
             Object::Return(r) => r.object_type(),
+            Object::Function(f) => f.object_type(),
             Object::Error(e) => e.object_type(),
         }
     }
@@ -128,5 +138,57 @@ impl TObject for Error {
 
     fn object_type(&self) -> ObjectType {
         ObjectType::NULL
+    }
+}
+
+// type Function struct {
+// Parameters []*ast.Identifier
+// Body *ast.BlockStatement
+// Env *Environment
+// }
+// func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
+// func (f *Function) Inspect() string {
+// var out bytes.Buffer
+// params := []string{}
+// for _, p := range f.Parameters {
+// params = append(params, p.String())
+// }
+// out.WriteString("fn")
+// out.WriteString("(")
+// out.WriteString(strings.Join(params, ", "))
+// out.WriteString(") {\n")
+// out.WriteString(f.Body.String())
+// out.WriteString("\n}")
+// return out.String()
+// }
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Function {
+    pub parameters: Vec<Box<ExpressionType>>,
+    pub body: Box<StatementType>,
+    pub env: Option<Environment>,
+}
+
+impl TObject for Function {
+    fn inspect(&self) -> String {
+        let mut out = String::new();
+        let params: Vec<String> = self.parameters.iter().map(|p| p.string()).collect();
+        out.push_str("fn");
+        out.push_str("(");
+        out.push_str(&params.join(", "));
+        out.push_str(") {\n");
+        out.push_str(&self.body.string());
+        out.push_str("\n}");
+        out
+    }
+
+    fn object_type(&self) -> ObjectType {
+        ObjectType::NULL
+    }
+}
+
+impl Write for Function {
+    fn write_str(&mut self, _s: &str) -> std::fmt::Result {
+        todo!()
     }
 }

@@ -5,7 +5,7 @@ use crate::{
 
 use super::{StatementType, TStatement};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct LetStatement {
     pub token: Token,
     pub name: String,
@@ -35,7 +35,7 @@ impl TStatement for LetStatement {
     fn statement_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ReturnStatement {
     pub token: Token,
     pub value: Box<ExpressionType>,
@@ -62,7 +62,7 @@ impl TStatement for ReturnStatement {
     fn statement_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ExpressionStatement {
     pub expression: Box<ExpressionType>,
 }
@@ -80,7 +80,7 @@ impl TStatement for ExpressionStatement {
     fn statement_node(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BlockStatement {
     pub token: Token,
     pub statements: Vec<Box<StatementType>>,
