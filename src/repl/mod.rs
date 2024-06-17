@@ -1,10 +1,13 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    rc::Rc,
+};
 
 use crate::{evaluator::eval, lexer::Lexer, object::environment::Environment, parser::Parser};
 
 pub fn run_repl() {
     println!("Welcome to the REPL CLI. Type 'exit' to quit.");
-    let env = &mut Environment::new();
+    let env = Environment::new();
     loop {
         print!(">> ");
         io::stdout().flush().expect("Failed to flush stdout");
@@ -24,7 +27,7 @@ pub fn run_repl() {
 
         let program = p.parse_program();
 
-        let x = eval(Box::new(program.to_node()), env);
+        let x = eval(Box::new(program.to_node()), Rc::clone(&env));
         println!("{:?}", x);
     }
 

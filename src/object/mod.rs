@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 use enum_as_inner::EnumAsInner;
 use environment::Environment;
-use std::fmt::Write;
+use std::{cell::RefCell, fmt::Write, rc::Rc};
 
 use crate::ast::{expression::ExpressionType, statement::StatementType, TNode};
 
@@ -166,7 +166,7 @@ impl TObject for Error {
 pub struct Function {
     pub parameters: Vec<Box<ExpressionType>>,
     pub body: Box<StatementType>,
-    pub env: Option<Environment>,
+    pub env: Rc<RefCell<Environment>>,
 }
 
 impl TObject for Function {

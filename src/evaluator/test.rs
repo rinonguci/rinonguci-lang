@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use crate::{
         ast::TNode,
         evaluator::eval,
@@ -173,28 +175,6 @@ mod tests {
         }
     }
 
-    //     func TestFunctionObject(t *testing.T) {
-    // input := "fn(x) { x + 2; };"
-    // evaluated := testEval(input)
-    // fn, ok := evaluated.(*object.Function)
-    // if !ok {
-    // t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
-    // }
-    // if len(fn.Parameters) != 1 {
-    // t.Fatalf("function has wrong parameters. Parameters=%+v",
-    // fn.Parameters)
-    // }
-    // if fn.Parameters[0].String() != "x" {
-    // t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
-    // }
-    // expectedBody := "(x + 2)"
-    // if fn.Body.String() != expectedBody {
-
-    // 142
-
-    // t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
-    // }
-    // }
     #[test]
     fn test_function_object() {
         let input = "fn(x) { x + 2; };";
@@ -213,29 +193,28 @@ mod tests {
         assert_eq!(function.body.into_block().expect("").string(), "{(x + 2)}");
     }
 
-    //     func TestFunctionApplication(t *testing.T) {
-    // tests := []struct {
-    // input string
-    // expected int64
-    // }{
-    // {"let identity = fn(x) { x; }; identity(5);", 5},
-    // {"let identity = fn(x) { return x; }; identity(5);", 5},
-    // {"let double = fn(x) { x * 2; }; double(5);", 10},
-    // {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-    // {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-    // {"fn(x) { x; }(5)", 5},
-    // }
-    // for _, tt := range tests {
-    // testIntegerObject(t, testEval(tt.input), tt.expected)
-    // }
-    // }
+    #[test]
+    fn test_function_application() {
+        let tests = vec![
+            ("let identity = fn(x) { x; }; identity(5);", 5),
+            ("let identity = fn(x) { return x; }; identity(5);", 5),
+            ("let double = fn(x) { x * 2; }; double(5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            ("fn(x) { x; }(5)", 5),
+        ];
+        for tt in tests {
+            let evaluated = test_eval(tt.0);
+            test_integer_object(evaluated, tt.1);
+        }
+    }
 
     fn test_eval(input: &str) -> Object {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
-        let env = &mut Environment::new();
-        eval(Box::new(program.to_node()), env)
+        let env = Environment::new();
+        eval(Box::new(program.to_node()), Rc::clone(&env))
     }
 
     fn test_integer_object(obj: Object, expected: i64) {
