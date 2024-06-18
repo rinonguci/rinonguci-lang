@@ -1,3 +1,5 @@
+pub mod test;
+
 use crate::ast::expression::node::{
     Boolean, CallExpression, FunctionLiteral, Identifier, IfExpression, InfixExpression,
     IntegerLiteral, PrefixExpression,
@@ -100,7 +102,6 @@ impl Parser {
     }
 
     fn parse_block_statement(&mut self) -> Box<StatementType> {
-        let token = self.cur_token.clone();
         self.next_token();
 
         let mut statements = Vec::new();
@@ -112,13 +113,12 @@ impl Parser {
             self.next_token();
         }
 
-        Box::new(StatementType::Block(BlockStatement { token, statements }))
+        Box::new(StatementType::Block(BlockStatement { statements }))
     }
 
     fn parse_if_expression(&mut self) -> Box<ExpressionType> {
         let default = Box::new(ExpressionType::Identifier(Identifier { token: Token::EOF }));
 
-        let token = self.cur_token.clone();
         if !self.expect_peek(&Token::LPAREN) {
             return default;
         }
@@ -147,7 +147,6 @@ impl Parser {
         }
 
         Box::new(ExpressionType::If(IfExpression {
-            token,
             condition,
             consequence,
             alternative,
@@ -180,7 +179,6 @@ impl Parser {
     fn parse_function_literal(&mut self) -> Box<ExpressionType> {
         let default = Box::new(ExpressionType::Identifier(Identifier { token: Token::EOF }));
 
-        let token = self.cur_token.clone();
         if !self.expect_peek(&Token::LPAREN) {
             return default;
         }
@@ -193,11 +191,7 @@ impl Parser {
 
         let body = self.parse_block_statement();
 
-        Box::new(ExpressionType::Fn(FunctionLiteral {
-            token,
-            parameters,
-            body,
-        }))
+        Box::new(ExpressionType::Fn(FunctionLiteral { parameters, body }))
     }
 
     fn parse_call_expression(&mut self, function: Box<ExpressionType>) -> Box<ExpressionType> {
@@ -266,6 +260,7 @@ impl Parser {
         match self.cur_token {
             Token::LET => self.parse_let_statement(),
             Token::RETURN => self.parse_return_statement(),
+            Token::IDENT(_) if self.peek_token_is(Token::ASSIGN) => self.parse_reassign_statement(),
             _ => self.parse_expression_statement(),
         }
     }
@@ -291,7 +286,27 @@ impl Parser {
         }
 
         Ok(Box::new(StatementType::Let(LetStatement {
-            token,
+            token: Some(token),
+            name,
+            value,
+        })))
+    }
+
+    fn parse_reassign_statement(&mut self) -> Result<Box<StatementType>> {
+        let name = self.cur_token.to_string();
+
+        if !self.expect_peek(&Token::ASSIGN) {
+            return Err(anyhow!("failed to parse let statement"));
+        }
+        self.next_token();
+
+        let value = self.parse_expression(Precedence::LOWEST);
+        if self.peek_token_is(Token::SEMICOLON) {
+            self.next_token();
+        }
+
+        Ok(Box::new(StatementType::Let(LetStatement {
+            token: None,
             name,
             value,
         })))
@@ -299,7 +314,6 @@ impl Parser {
 
     #[auto_log]
     fn parse_return_statement(&mut self) -> Result<Box<StatementType>> {
-        let token = self.cur_token.clone();
         self.next_token();
 
         let value = self.parse_expression(Precedence::LOWEST);
@@ -308,10 +322,7 @@ impl Parser {
             self.next_token();
         }
 
-        Ok(Box::new(StatementType::Return(ReturnStatement {
-            token,
-            value,
-        })))
+        Ok(Box::new(StatementType::Return(ReturnStatement { value })))
     }
 
     #[auto_log]

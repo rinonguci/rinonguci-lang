@@ -168,6 +168,8 @@ mod tests {
             ("let a = 5 * 5; a;", 25),
             ("let a = 5; let b = a; b;", 5),
             ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+            ("let a = 5; a = 10;", 10),
+            // ("let a = 5; fn(newA) {a = newA}(100); a", 100),
         ];
         for tt in tests {
             let evaluated = test_eval(tt.0);

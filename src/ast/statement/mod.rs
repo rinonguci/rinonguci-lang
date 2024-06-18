@@ -8,9 +8,7 @@ use crate::ast::TNode;
 
 use super::Node;
 
-pub trait TStatement: TNode + Debug {
-    fn statement_node(&self);
-}
+pub trait TStatement: TNode + Debug {}
 
 #[derive(Debug, EnumAsInner, PartialEq, Clone)]
 pub enum StatementType {

@@ -89,7 +89,6 @@ impl Lexer {
             ')' => Token::RPAREN,
             '{' => Token::LBRACE,
             '}' => Token::RBRACE,
-            c if c.is_digit(10) => return Token::INT(self.read_number().parse().unwrap()),
             c if is_letter(c) => {
                 let str = self.read_identifier();
                 return match KEYWORDS.contains_key(str.as_str()) {
@@ -97,6 +96,7 @@ impl Lexer {
                     false => Token::IDENT(str),
                 };
             }
+            c if c.is_digit(10) => return Token::INT(self.read_number().parse().unwrap()),
             c => Token::ILLEGAL(c),
         };
 
@@ -106,5 +106,5 @@ impl Lexer {
 }
 
 fn is_letter(ch: char) -> bool {
-    ch.is_ascii_alphabetic() || ch == '_'
+    ch.is_alphabetic() || ch == '_'
 }

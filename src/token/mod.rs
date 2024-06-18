@@ -79,6 +79,7 @@ pub enum Token {
     // keywords
     FUNCTION,
     LET,
+    // REASSIGN,
     TRUE,
     FALSE,
     IF,
@@ -111,6 +112,7 @@ impl Token {
             Token::RBRACE => "}".into(),
             Token::FUNCTION => "fn".into(),
             Token::LET => "let".into(),
+            // Token::REASSIGN => "=".into(),
             Token::TRUE => "true".into(),
             Token::FALSE => "false".into(),
             Token::IF => "if".into(),

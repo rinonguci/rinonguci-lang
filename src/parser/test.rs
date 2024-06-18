@@ -4,7 +4,7 @@ mod tests {
         ast::{
             expression::{node::Identifier, ExpressionType},
             statement::{node::LetStatement, StatementType},
-            Node, Program,
+            Program, TNode,
         },
         lexer::Lexer,
         parser::Parser,
@@ -47,7 +47,7 @@ mod tests {
     fn test_string() {
         let program = Program {
             statements: vec![Box::new(StatementType::Let(LetStatement {
-                token: Token::LET,
+                token: Some(Token::LET),
                 name: "myVar".to_string(),
                 value: Box::new(ExpressionType::Identifier(Identifier {
                     token: Token::IDENT("anotherVar".to_string()),

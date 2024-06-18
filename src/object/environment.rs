@@ -1,3 +1,4 @@
+use rinonguci_script::new_error;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use super::Object;
@@ -33,8 +34,21 @@ impl Environment {
         }
     }
 
-    pub fn set(&mut self, name: String, val: Object) -> Object {
+    pub fn init(&mut self, name: String, val: Object) -> Object {
         self.store.insert(name, val.clone());
         val
+    }
+
+    pub fn assign(&mut self, name: String, val: Object) -> Object {
+        match self.store.get(&name) {
+            Some(_) => {
+                self.store.insert(name, val.clone());
+                val
+            }
+            None => match &self.outer {
+                Some(outer) => outer.borrow_mut().assign(name, val),
+                None => new_error!("unknown operator"),
+            },
+        }
     }
 }

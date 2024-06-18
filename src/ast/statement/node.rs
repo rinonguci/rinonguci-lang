@@ -3,24 +3,26 @@ use crate::{
     token::Token,
 };
 
-use super::{StatementType, TStatement};
+use super::StatementType;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LetStatement {
-    pub token: Token,
+    pub token: Option<Token>,
     pub name: String,
     pub value: Box<ExpressionType>,
 }
 
 impl TNode for LetStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string().to_string()
+        match &self.token {
+            Some(t) => format!("{} ", t.to_string()),
+            None => "".into(),
+        }
     }
 
     fn string(&self) -> String {
         let mut out = String::new();
         out.push_str(&self.token_literal());
-        out.push_str(" ");
         out.push_str(&self.name.to_string());
         out.push_str(" = ");
 
@@ -31,19 +33,15 @@ impl TNode for LetStatement {
         out
     }
 }
-impl TStatement for LetStatement {
-    fn statement_node(&self) {}
-}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ReturnStatement {
-    pub token: Token,
     pub value: Box<ExpressionType>,
 }
 
 impl TNode for ReturnStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string().into()
+        "return".into()
     }
 
     fn string(&self) -> String {
@@ -57,9 +55,6 @@ impl TNode for ReturnStatement {
 
         out
     }
-}
-impl TStatement for ReturnStatement {
-    fn statement_node(&self) {}
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -76,19 +71,15 @@ impl TNode for ExpressionStatement {
         self.expression.string()
     }
 }
-impl TStatement for ExpressionStatement {
-    fn statement_node(&self) {}
-}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct BlockStatement {
-    pub token: Token,
     pub statements: Vec<Box<StatementType>>,
 }
 
 impl TNode for BlockStatement {
     fn token_literal(&self) -> String {
-        self.token.to_string().into()
+        "".into()
     }
 
     fn string(&self) -> String {
@@ -100,8 +91,4 @@ impl TNode for BlockStatement {
         }
         out
     }
-}
-
-impl TStatement for BlockStatement {
-    fn statement_node(&self) {}
 }

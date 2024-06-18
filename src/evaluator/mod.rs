@@ -12,8 +12,7 @@ use crate::{
         Node, Program, TNode,
     },
     object::{
-        environment::Environment, Boolean, Error, Function, Integer, Null, Object, ObjectType,
-        ReturnValue,
+        environment::Environment, Boolean, Function, Integer, Null, Object, ObjectType, ReturnValue,
     },
     token::Token,
 };
@@ -63,19 +62,6 @@ fn eval_expression(expr: ExpressionType, env: Rc<RefCell<Environment>>) -> Objec
                 env,
             })
         }
-        //         case *ast.CallExpression:
-        // function := Eval(node.Function, env)
-        // if isError(function) {
-        // return function
-        // }
-        // args := evalExpressions(node.Arguments, env)
-        // if len(args) == 1 && isError(args[0]) {
-
-        // 146
-
-        // return args[0]
-        // }
-        // return applyFunction(function, args)
         ExpressionType::Call(call) => {
             let func = eval(call.function.to_node(), Rc::clone(&env));
             if func.is_error() {
@@ -97,10 +83,7 @@ fn eval_statement(stmt: StatementType, env: Rc<RefCell<Environment>>) -> Object 
         StatementType::Expression(ExpressionStatement { expression }) => {
             eval(expression.to_node(), env)
         }
-        StatementType::Block(BlockStatement {
-            statements,
-            token: _,
-        }) => eval_statements(statements, env),
+        StatementType::Block(BlockStatement { statements }) => eval_statements(statements, env),
         StatementType::Return(node) => {
             let val = eval(node.value.to_node(), env);
             Object::Return(ReturnValue {
@@ -108,11 +91,24 @@ fn eval_statement(stmt: StatementType, env: Rc<RefCell<Environment>>) -> Object 
             })
         }
         StatementType::Let(let_stmt) => {
-            let val = eval(let_stmt.value.to_node(), Rc::clone(&env));
-            if val.is_error() {
-                return val;
+            if let Some(_) = let_stmt.token {
+                let val = eval(let_stmt.value.to_node(), Rc::clone(&env));
+                if val.is_error() {
+                    return val;
+                }
+                env.borrow_mut().init(let_stmt.name.to_string(), val)
+            } else {
+                let is_found = env.borrow().get(let_stmt.name.to_string());
+                if is_found.is_none() {
+                    return new_error!("identifier not found: {}", let_stmt.name.to_string());
+                }
+
+                let val = eval(let_stmt.value.to_node(), Rc::clone(&env));
+                if val.is_error() {
+                    return val;
+                }
+                env.borrow_mut().assign(let_stmt.name.to_string(), val)
             }
-            env.borrow_mut().set(let_stmt.name.to_string(), val)
         }
     }
 }
@@ -156,8 +152,7 @@ fn eval_prefix_expression(operator: Token, right: Object) -> Object {
 
 fn eval_bang_operator_expression(right: Object) -> Object {
     match right {
-        Object::Boolean(Boolean { value: true }) => Object::Boolean(Boolean { value: false }),
-        Object::Boolean(Boolean { value: false }) => Object::Boolean(Boolean { value: true }),
+        Object::Boolean(Boolean { value }) => Object::Boolean(Boolean { value: !value }),
         Object::Null(Null {}) => Object::Boolean(Boolean { value: true }),
         _ => Object::Boolean(Boolean { value: false }),
     }
@@ -304,7 +299,7 @@ fn extend_function_env(func_obj: &Function, args: Vec<Object>) -> Result<Rc<RefC
     }
     for (param_idx, param) in func_obj.parameters.iter().enumerate() {
         env.borrow_mut()
-            .set(param.as_ref().string(), args[param_idx].clone());
+            .init(param.as_ref().string(), args[param_idx].clone());
     }
     Ok(env)
 }

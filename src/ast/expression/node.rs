@@ -3,7 +3,7 @@ use crate::{
     token::Token,
 };
 
-use super::{ExpressionType, TExpression};
+use super::ExpressionType;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Identifier {
@@ -19,9 +19,6 @@ impl TNode for Identifier {
         self.token.to_string()
     }
 }
-impl TExpression for Identifier {
-    fn expression_node(&self) {}
-}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct IntegerLiteral {
@@ -36,9 +33,6 @@ impl TNode for IntegerLiteral {
     fn string(&self) -> String {
         self.token.to_string()
     }
-}
-impl TExpression for IntegerLiteral {
-    fn expression_node(&self) {}
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -61,10 +55,6 @@ impl TNode for PrefixExpression {
 
         out
     }
-}
-
-impl TExpression for PrefixExpression {
-    fn expression_node(&self) {}
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -93,10 +83,6 @@ impl TNode for InfixExpression {
     }
 }
 
-impl TExpression for InfixExpression {
-    fn expression_node(&self) {}
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct Boolean {
     pub token: Token,
@@ -112,13 +98,8 @@ impl TNode for Boolean {
     }
 }
 
-impl TExpression for Boolean {
-    fn expression_node(&self) {}
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct IfExpression {
-    pub token: Token,
     pub condition: Box<ExpressionType>,
     pub consequence: Box<StatementType>,
     pub alternative: Option<Box<StatementType>>,
@@ -126,7 +107,7 @@ pub struct IfExpression {
 
 impl TNode for IfExpression {
     fn token_literal(&self) -> String {
-        self.token.to_string()
+        "if".into()
     }
 
     fn string(&self) -> String {
@@ -146,20 +127,15 @@ impl TNode for IfExpression {
     }
 }
 
-impl TExpression for IfExpression {
-    fn expression_node(&self) {}
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct FunctionLiteral {
-    pub token: Token,
     pub parameters: Vec<Box<ExpressionType>>,
     pub body: Box<StatementType>,
 }
 
 impl TNode for FunctionLiteral {
     fn token_literal(&self) -> String {
-        self.token.to_string()
+        "fn".into()
     }
 
     fn string(&self) -> String {
@@ -201,8 +177,4 @@ impl TNode for CallExpression {
         out.push_str(")");
         out
     }
-}
-
-impl TExpression for CallExpression {
-    fn expression_node(&self) {}
 }

@@ -12,10 +12,6 @@ use crate::ast::TNode;
 
 use super::Node;
 
-pub trait TExpression: TNode + Debug {
-    fn expression_node(&self);
-}
-
 #[derive(Debug, EnumAsInner, PartialEq, Clone)]
 pub enum ExpressionType {
     Identifier(Identifier),
