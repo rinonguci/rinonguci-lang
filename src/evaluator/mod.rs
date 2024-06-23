@@ -31,7 +31,7 @@ fn eval_expression(expr: ExpressionType, env: Rc<RefCell<Environment>>) -> Objec
     match expr {
         ExpressionType::IntegerLiteral(expression::node::IntegerLiteral { token }) => {
             Object::Integer(Integer {
-                value: token.as_int().unwrap().clone(),
+                value: token.into_int().expect("failed to convert token to int"),
             })
         }
         ExpressionType::Boolean(expression::node::Boolean { token }) => {
@@ -103,6 +103,7 @@ fn eval_statement(stmt: StatementType, env: Rc<RefCell<Environment>>) -> Object 
                     return new_error!("identifier not found: {}", let_stmt.name.to_string());
                 }
 
+                println!("is_found: {:?}", is_found);
                 let val = eval(let_stmt.value.to_node(), Rc::clone(&env));
                 if val.is_error() {
                     return val;
@@ -282,7 +283,12 @@ fn apply_function(func_obj: Object, args: Vec<Object>) -> Object {
             return new_error!("{}", extended_env.err().unwrap().to_string());
         }
         let evaluated = eval(func_obj.body.to_node(), extended_env.unwrap());
-        unwrap_return_value(evaluated)
+
+        if let Object::Return(ReturnValue { value }) = evaluated {
+            *value
+        } else {
+            evaluated
+        }
     } else {
         new_error!("not a function: {:?}", func_obj.object_type())
     }
@@ -302,12 +308,4 @@ fn extend_function_env(func_obj: &Function, args: Vec<Object>) -> Result<Rc<RefC
             .init(param.as_ref().string(), args[param_idx].clone());
     }
     Ok(env)
-}
-
-fn unwrap_return_value(obj: Object) -> Object {
-    if let Object::Return(ReturnValue { value }) = obj {
-        *value
-    } else {
-        obj
-    }
 }

@@ -26,8 +26,12 @@ pub fn run_repl() {
         let mut p = Parser::new(l);
 
         let program = p.parse_program();
+        if program.is_err() {
+            println!("{:?}", program.err());
+            continue;
+        }
 
-        let x = eval(Box::new(program.to_node()), Rc::clone(&env));
+        let x = eval(Box::new(program.unwrap().to_node()), Rc::clone(&env));
         println!("{:?}", x);
     }
 

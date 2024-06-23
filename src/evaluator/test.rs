@@ -215,6 +215,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
         let env = Environment::new();
         eval(Box::new(program.to_node()), Rc::clone(&env))
     }

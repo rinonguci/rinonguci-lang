@@ -401,7 +401,7 @@ impl Parser {
     }
 
     #[auto_log]
-    pub fn parse_program(&mut self) -> Program {
+    pub fn parse_program(&mut self) -> Result<Program> {
         let mut program = Program {
             statements: Vec::new(),
         };
@@ -414,9 +414,14 @@ impl Parser {
 
             self.next_token();
         }
-        self.check_parser_errors();
 
-        program
+        let errs = self.check_parser_errors();
+
+        if errs.is_err() {
+            return Err(errs.unwrap_err());
+        }
+
+        Ok(program)
     }
 
     fn register_prefix(&mut self, token_type: Token, function: PrefixParseFn) {
@@ -442,11 +447,11 @@ impl Parser {
         self.errors.push(msg);
     }
 
-    fn check_parser_errors(&self) {
+    fn check_parser_errors(&self) -> Result<()> {
         let errors = self.errors();
 
         if errors.is_empty() {
-            return;
+            return Ok(());
         }
 
         let mut error_msg = format!("\nParser has {} errors\n", errors.len());
@@ -454,6 +459,6 @@ impl Parser {
             error_msg.push_str(&format!("Parser error: {}\n", msg));
         }
 
-        panic!("{}", error_msg);
+        Err(anyhow!(error_msg))
     }
 }

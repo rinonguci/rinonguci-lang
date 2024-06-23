@@ -20,7 +20,9 @@ mod tests {
     ";
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
-        let program = p.parse_program();
+        let program = p.parse_program().unwrap_or_else(|e| {
+            panic!("parse_program() returned an error: {:?}", e);
+        });
 
         assert_eq!(
             program.statements.len(),
@@ -69,6 +71,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),
@@ -94,6 +100,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),
@@ -117,6 +127,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),
@@ -141,6 +155,10 @@ mod tests {
             let l = Lexer::new(input.to_string());
             let mut p = Parser::new(l);
             let program = p.parse_program();
+            if program.is_err() {
+                panic!("parse_program() returned an error: {:?}", program.err());
+            }
+            let program = program.unwrap();
 
             assert_eq!(
                 program.statements.len(),
@@ -186,6 +204,10 @@ mod tests {
             let l = Lexer::new(input.to_string());
             let mut p = Parser::new(l);
             let program = p.parse_program();
+            if program.is_err() {
+                panic!("parse_program() returned an error: {:?}", program.err());
+            }
+            let program = program.unwrap();
 
             assert_eq!(
                 program.statements.len(),
@@ -264,6 +286,10 @@ mod tests {
             let l = Lexer::new(input.to_string());
             let mut p = Parser::new(l);
             let program = p.parse_program();
+            if program.is_err() {
+                panic!("parse_program() returned an error: {:?}", program.err());
+            }
+            let program = program.unwrap();
 
             let actual = program.string();
 
@@ -277,6 +303,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),
@@ -319,6 +349,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),
@@ -381,6 +415,10 @@ mod tests {
             let l = Lexer::new(input.to_string());
             let mut p = Parser::new(l);
             let program = p.parse_program();
+            if program.is_err() {
+                panic!("parse_program() returned an error: {:?}", program.err());
+            }
+            let program = program.unwrap();
 
             let stmt = program.statements[0].as_expression().unwrap();
             let function = stmt.expression.as_ref().as_fn().unwrap();
@@ -412,6 +450,10 @@ mod tests {
         let l = Lexer::new(input.to_string());
         let mut p = Parser::new(l);
         let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
 
         assert_eq!(
             program.statements.len(),

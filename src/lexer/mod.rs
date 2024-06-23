@@ -5,16 +5,16 @@ use token::{Token, KEYWORDS};
 
 #[derive(Debug)]
 pub struct Lexer {
-    input: String,
-    position: usize,      // current position in input (points to current char)
-    read_position: usize, // current reading position in input (after current char)
-    ch: char,             // current char under examination, using Option for handling end of input
+    input: Vec<char>,
+    position: usize,
+    read_position: usize,
+    ch: char,
 }
 
 impl Lexer {
     pub fn new(input: String) -> Lexer {
         let mut l = Lexer {
-            input,
+            input: input.chars().collect(),
             position: 0,
             read_position: 0,
             ch: '\0',
@@ -27,7 +27,7 @@ impl Lexer {
         if self.read_position >= self.input.len() {
             self.ch = '\0';
         } else {
-            self.ch = self.input.chars().nth(self.read_position).unwrap();
+            self.ch = self.input[self.read_position];
         }
         self.position = self.read_position;
         self.read_position += 1;
@@ -38,14 +38,15 @@ impl Lexer {
         while is_letter(self.ch) {
             self.read_char();
         }
-        self.input[position..self.position].to_string()
+
+        self.input[position..self.position].into_iter().collect()
     }
 
     pub fn peek_char(&self) -> char {
         if self.read_position >= self.input.len() {
             '\0'
         } else {
-            self.input.chars().nth(self.read_position).unwrap()
+            self.input[self.read_position]
         }
     }
 
@@ -54,7 +55,7 @@ impl Lexer {
         while self.ch.is_digit(10) {
             self.read_char();
         }
-        self.input[position..self.position].to_string()
+        self.input[position..self.position].into_iter().collect()
     }
 
     fn skip_whitespace(&mut self) {
