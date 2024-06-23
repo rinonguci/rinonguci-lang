@@ -36,6 +36,21 @@ impl TNode for IntegerLiteral {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct StringLiteral {
+    pub token: Token,
+}
+
+impl TNode for StringLiteral {
+    fn token_literal(&self) -> String {
+        self.token.to_string()
+    }
+
+    fn string(&self) -> String {
+        self.token.to_string()
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct PrefixExpression {
     pub operator: Token,
     pub right: Box<ExpressionType>,

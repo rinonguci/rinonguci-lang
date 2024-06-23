@@ -499,4 +499,51 @@ mod tests {
             exp.arguments[2].as_ref().string()
         );
     }
+
+    //     func TestStringLiteralExpression(t *testing.T) {
+    // input := `"hello world";`
+    // l := lexer.New(input)
+    // p := New(l)
+    // program := p.ParseProgram()
+    // checkParserErrors(t, p)
+    // stmt := program.Statements[0].(*ast.ExpressionStatement)
+    // literal, ok := stmt.Expression.(*ast.StringLiteral)
+    // if !ok {
+    // t.Fatalf("exp not *ast.StringLiteral. got=%T", stmt.Expression)
+
+    // 155
+
+    // }
+    // if literal.Value != "hello world" {
+    // t.Errorf("literal.Value not %q. got=%q", "hello world", literal.Value)
+    // }
+    // }
+
+    #[test]
+    fn test_string_literal_expression() {
+        let input = "\"hello world\";";
+        let l = Lexer::new(input.to_string());
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+        if program.is_err() {
+            panic!("parse_program() returned an error: {:?}", program.err());
+        }
+        let program = program.unwrap();
+
+        assert_eq!(
+            program.statements.len(),
+            1,
+            "program.Statements does not contain 1 statement"
+        );
+
+        let stmt = program.statements[0].as_expression().unwrap();
+        let literal = stmt.expression.as_ref().as_string_literal().unwrap();
+
+        assert_eq!(
+            literal.token_literal(),
+            "hello world",
+            "literal.Value not 'hello world'. got={}",
+            literal.token_literal()
+        );
+    }
 }

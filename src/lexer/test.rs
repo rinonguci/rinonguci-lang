@@ -22,6 +22,8 @@ mod tests {
 
           13 == 13;
           14 != 5;
+          "foobar"
+          "foo bar"
         "#;
 
         let tokens = vec![
@@ -98,6 +100,8 @@ mod tests {
             Token::NOT_EQ,
             Token::INT(5),
             Token::SEMICOLON,
+            Token::STRING("foobar".into()),
+            Token::STRING("foo bar".into()),
             Token::EOF,
         ];
 

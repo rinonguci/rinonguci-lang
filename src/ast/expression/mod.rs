@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use enum_as_inner::EnumAsInner;
 use node::{
     Boolean, CallExpression, FunctionLiteral, Identifier, IfExpression, InfixExpression,
-    IntegerLiteral, PrefixExpression,
+    IntegerLiteral, PrefixExpression, StringLiteral,
 };
 
 use crate::ast::TNode;
@@ -16,6 +16,7 @@ use super::Node;
 pub enum ExpressionType {
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),
+    StringLiteral(StringLiteral),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
     Boolean(Boolean),
@@ -29,6 +30,7 @@ impl TNode for ExpressionType {
         match self {
             ExpressionType::Identifier(expr) => expr.token_literal(),
             ExpressionType::IntegerLiteral(expr) => expr.token_literal(),
+            ExpressionType::StringLiteral(expr) => expr.token_literal(),
             ExpressionType::Prefix(expr) => expr.token_literal(),
             ExpressionType::Infix(expr) => expr.token_literal(),
             ExpressionType::Boolean(expr) => expr.token_literal(),
@@ -42,6 +44,7 @@ impl TNode for ExpressionType {
         match self {
             ExpressionType::Identifier(expr) => expr.string(),
             ExpressionType::IntegerLiteral(expr) => expr.string(),
+            ExpressionType::StringLiteral(expr) => expr.string(),
             ExpressionType::Prefix(expr) => expr.string(),
             ExpressionType::Infix(expr) => expr.string(),
             ExpressionType::Boolean(expr) => expr.string(),

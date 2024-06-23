@@ -2,7 +2,7 @@ pub mod test;
 
 use crate::ast::expression::node::{
     Boolean, CallExpression, FunctionLiteral, Identifier, IfExpression, InfixExpression,
-    IntegerLiteral, PrefixExpression,
+    IntegerLiteral, PrefixExpression, StringLiteral,
 };
 use crate::ast::expression::ExpressionType;
 use crate::ast::statement::node::{
@@ -47,6 +47,7 @@ impl Parser {
 
         parser.register_prefix(Token::IDENT(String::new()), Parser::parse_identifier);
         parser.register_prefix(Token::INT(0), Parser::parse_integer_literal);
+        parser.register_prefix(Token::STRING(String::new()), Parser::parse_string_literal);
         parser.register_prefix(Token::BANG, Parser::parse_prefix_expression);
         parser.register_prefix(Token::MINUS, Parser::parse_prefix_expression);
         parser.register_prefix(Token::TRUE, Parser::parse_boolean);
@@ -81,6 +82,13 @@ impl Parser {
     #[auto_log]
     fn parse_integer_literal(&mut self) -> Box<ExpressionType> {
         Box::new(ExpressionType::IntegerLiteral(IntegerLiteral {
+            token: self.cur_token.clone(),
+        }))
+    }
+
+    #[auto_log]
+    fn parse_string_literal(&mut self) -> Box<ExpressionType> {
+        Box::new(ExpressionType::StringLiteral(StringLiteral {
             token: self.cur_token.clone(),
         }))
     }

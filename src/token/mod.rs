@@ -53,6 +53,7 @@ pub enum Token {
 
     // Identifiers + literals
     IDENT(String),
+    STRING(String),
     INT(i64),
 
     // Operators
@@ -112,12 +113,12 @@ impl Token {
             Token::RBRACE => "}".into(),
             Token::FUNCTION => "fn".into(),
             Token::LET => "let".into(),
-            // Token::REASSIGN => "=".into(),
             Token::TRUE => "true".into(),
             Token::FALSE => "false".into(),
             Token::IF => "if".into(),
             Token::ELSE => "else".into(),
             Token::RETURN => "return".into(),
+            Token::STRING(s) => s.to_string(),
         }
     }
 

@@ -149,6 +149,7 @@ mod tests {
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
             ("foobar", "identifier not found: foobar"),
+            (r#""Hello" - "World!""#, "unknown operator: STRING - STRING"),
         ];
         for tt in tests {
             let evaluated = test_eval(tt.0);
@@ -209,6 +210,22 @@ mod tests {
             let evaluated = test_eval(tt.0);
             test_integer_object(evaluated, tt.1);
         }
+    }
+
+    #[test]
+    fn test_string_literal() {
+        let input = r#""Hello World!""#;
+        let evaluated = test_eval(input);
+        let str = evaluated.into_string().expect("not a string object");
+        assert_eq!(str.value, "Hello World!");
+    }
+
+    #[test]
+    fn test_string_concatenation() {
+        let input = r#""Hello" + " " + "World!""#;
+        let evaluated = test_eval(input);
+        let str = evaluated.into_string().expect("not a string object");
+        assert_eq!(str.value, "Hello World!");
     }
 
     fn test_eval(input: &str) -> Object {

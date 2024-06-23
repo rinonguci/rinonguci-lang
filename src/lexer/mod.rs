@@ -42,6 +42,16 @@ impl Lexer {
         self.input[position..self.position].into_iter().collect()
     }
 
+    fn read_string(&mut self) -> String {
+        self.read_char();
+        let position = self.position;
+        while self.ch != '"' && self.ch != '\0' {
+            self.read_char();
+        }
+
+        self.input[position..self.position].into_iter().collect()
+    }
+
     pub fn peek_char(&self) -> char {
         if self.read_position >= self.input.len() {
             '\0'
@@ -90,6 +100,7 @@ impl Lexer {
             ')' => Token::RPAREN,
             '{' => Token::LBRACE,
             '}' => Token::RBRACE,
+            '"' => Token::STRING(self.read_string()),
             c if is_letter(c) => {
                 let str = self.read_identifier();
                 return match KEYWORDS.contains_key(str.as_str()) {

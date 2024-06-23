@@ -12,7 +12,8 @@ use crate::{
         Node, Program, TNode,
     },
     object::{
-        environment::Environment, Boolean, Function, Integer, Null, Object, ObjectType, ReturnValue,
+        environment::Environment, Boolean, Function, Integer, Null, Object, ObjectType,
+        ReturnValue, StringObj,
     },
     token::Token,
 };
@@ -32,6 +33,13 @@ fn eval_expression(expr: ExpressionType, env: Rc<RefCell<Environment>>) -> Objec
         ExpressionType::IntegerLiteral(expression::node::IntegerLiteral { token }) => {
             Object::Integer(Integer {
                 value: token.into_int().expect("failed to convert token to int"),
+            })
+        }
+        ExpressionType::StringLiteral(expression::node::StringLiteral { token }) => {
+            Object::String(StringObj {
+                value: token
+                    .into_string()
+                    .expect("failed to convert token to string"),
             })
         }
         ExpressionType::Boolean(expression::node::Boolean { token }) => {
@@ -186,6 +194,15 @@ fn eval_infix_expression(
         _ => match (left.object_type(), right.object_type()) {
             (ObjectType::INTEGER, ObjectType::INTEGER) => {
                 eval_integer_infix_expression(operator, left, right)
+            }
+            (ObjectType::STRING, ObjectType::STRING) if operator == Token::PLUS => {
+                if let (Object::String(left), Object::String(right)) = (left, right) {
+                    Object::String(StringObj {
+                        value: format!("{}{}", left.value, right.value),
+                    })
+                } else {
+                    new_error!("failed to convert object to string")
+                }
             }
             (left_type, right_type) => {
                 if left_type != right_type {
